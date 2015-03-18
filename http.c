@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <Windows.h>
 #include "cookie.h"
 #include "socket.h"
 #include "http.h"
@@ -84,7 +83,7 @@ static int send_header(struct http *self, const char *header)
 
         err = cookie_format(self->cook, cookie, ARRAY_SIZE(cookie));
         if (err < 0)
-                return NULL;
+                return -1;
 
         url_len = strlen(header) + strlen(cookie) + 128; /* other charactor */
 
@@ -93,9 +92,9 @@ static int send_header(struct http *self, const char *header)
                 return -1;
 
         if (err > 0)
-                url_len = _snprintf(url, url_len, "%sCookie:%s\r\n\r\n", header, cookie);
+                url_len = snprintf(url, url_len, "%sCookie:%s\r\n\r\n", header, cookie);
         else
-                url_len = _snprintf(url, url_len, "%s\r\n\r\n", header);
+                url_len = snprintf(url, url_len, "%s\r\n\r\n", header);
 
         err = socket_send_data(self->sock, url, url_len);
 
@@ -181,6 +180,7 @@ static int recv_header(struct http *self, int *data_len)
         return 0;
 }
 
+/*
 static int utf8_to_mbs(char *pmb, int mb_len, const char* utf8, int utf8_len)  
 {  
     // convert an UTF8 string to widechar   
@@ -202,6 +202,7 @@ static int utf8_to_mbs(char *pmb, int mb_len, const char* utf8, int utf8_len)
 
         return 0;
 }
+*/
 
 int http_send_packet_on(struct http *self, const char *header, const char *body, int body_len)
 {
@@ -283,7 +284,7 @@ int http_send_packet(struct http *self, const char *header, const char *body, in
                 goto end;
 
         if (response)
-                utf8_to_mbs(response, len, res, data_len);
+                strncpy(response, res, len);
 
 end:
         if (res)

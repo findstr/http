@@ -1,5 +1,10 @@
 #include <assert.h>
-#include <WinSock2.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <string.h>
+
 #include "socket.h"
 
 #define	ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
@@ -7,7 +12,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 struct socket {
-	SOCKET		s;
+	int     s;
 };
 
 struct socket *socket_create()
@@ -21,7 +26,7 @@ struct socket *socket_create()
 
 	memset(s, 0, sizeof(*s));
 
-	s->s = INVALID_SOCKET;
+	s->s = -1;
 
 	return s;
 }
@@ -30,8 +35,8 @@ int socket_free(struct socket *self)
 {
 	assert(self);
 
-	if (self->s != INVALID_SOCKET)
-		closesocket(self->s);
+	if (self->s != -1)
+		close(self->s);
 
 	free(self);
 
@@ -41,8 +46,8 @@ int socket_free(struct socket *self)
 int socket_connect_host(struct socket *self, const char *host_name, unsigned short dst_port)
 {
         int err;
-        hostent	*host;
-        SOCKET s;
+        struct hostent	*host;
+        int              s;
         struct sockaddr_in addr;
 
 	host = gethostbyname(host_name);
@@ -54,7 +59,7 @@ int socket_connect_host(struct socket *self, const char *host_name, unsigned sho
 	addr.sin_port = htons(dst_port);
 
         s = socket(AF_INET, SOCK_STREAM, 0);
-        err = connect(s, (SOCKADDR *)&addr, sizeof(addr));
+        err = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 
         if (err < 0)
                 return 0;
@@ -67,7 +72,7 @@ int socket_connect_host(struct socket *self, const char *host_name, unsigned sho
 int socket_connect(struct socket *self, const char *dst_ip, unsigned short dst_port)
 {
 	int err;
-	SOCKET s;
+	int s;
 	struct sockaddr_in sa;
 
 	assert(self);
@@ -79,7 +84,7 @@ int socket_connect(struct socket *self, const char *dst_ip, unsigned short dst_p
 	sa.sin_port = htons(dst_port);
 	sa.sin_family = AF_INET;
 
-	err = connect(s, (SOCKADDR *)&sa, sizeof(sa));
+	err = connect(s, (struct sockaddr *)&sa, sizeof(sa));
 	if (err < 0)
 		return -1;
 
@@ -89,11 +94,11 @@ int socket_connect(struct socket *self, const char *dst_ip, unsigned short dst_p
 
 int socket_disconnect(struct socket *self)
 {
-	assert(self->s != INVALID_SOCKET);
+	assert(self->s != -1);
 
-	closesocket(self->s);
+	close(self->s);
 
-	self->s = INVALID_SOCKET;
+	self->s = -1;
 
 	return 0;
 }
@@ -105,7 +110,7 @@ int socket_send_data(struct socket *self, const char *buff, int len)
 	assert(self);
 	assert(buff);
 	assert(len);
-	assert(self->s != INVALID_SOCKET);
+	assert(self->s != -1);
 
 	do {
 		err = send(self->s, buff, len, 0);
@@ -129,7 +134,7 @@ int socket_recv_data(struct socket *self, char *buff, int len)
 	assert(self);
 	assert(buff);
 	assert(len);
-	assert(self->s != INVALID_SOCKET);
+	assert(self->s != -1);
 
 	do {
 		err = recv(self->s, buff, len, 0);
@@ -152,7 +157,7 @@ int socket_send_str(struct socket *self, const char *buff)
 	int len;
 
 	assert(self);
-	assert(self->s != INVALID_SOCKET);
+	assert(self->s != -1);
 	assert(buff);
 
 	len = 0;
@@ -170,7 +175,7 @@ int socket_recv_line(struct socket *self, char *buff, int len)
         char *orig;
 
 	assert(self);
-	assert(self->s != INVALID_SOCKET);
+	assert(self->s != -1);
 	assert(buff);
 
         orig = buff;

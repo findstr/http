@@ -140,10 +140,10 @@ int cookie_format(struct cookie *self, char *cookie, int len)  /* cookie max siz
         cookie_cnt = array_size(self->tbl);
 
         for (i = 0; i < cookie_cnt - 1; i++)
-                curr_len += _snprintf(&cookie[curr_len], len - curr_len, "%s;", array_at(self->tbl, i, char *));
+                curr_len += snprintf(&cookie[curr_len], len - curr_len, "%s;", array_at(self->tbl, i, char *));
  
         if (i < cookie_cnt)
-                curr_len += _snprintf(&cookie[curr_len], len - curr_len, "%s", array_at(self->tbl, i, char *));
+                curr_len += snprintf(&cookie[curr_len], len - curr_len, "%s", array_at(self->tbl, i, char *));
 
         return curr_len;
 }
