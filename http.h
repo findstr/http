@@ -15,4 +15,6 @@ int http_send_packet(struct http *self, const char *header, const char *body, in
 int http_send_packet_on(struct http *self, const char *header, const char *body, int body_len);
 int http_recv_packet_off(struct http *self, char *res, int res_len);
 
+void http_cookie_dump(struct http *self);
+
 #endif // !_HTTP_H

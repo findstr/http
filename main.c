@@ -22,6 +22,10 @@ int main()
 
         printf("response:%s\n", buff);
 
+        http_cookie_dump(h);
+
+        printf("cookie get:%s\n", http_get_cookie(h, "BAIDUID="));
+
         http_free(h);
 
         return 0;

@@ -292,3 +292,14 @@ end:
 
         return data_len;
 }
+
+void http_cookie_dump(struct http *self)
+{
+        char buff[8192];
+
+        cookie_format(self->cook, buff, 8192);
+
+        printf("cookie dump -->\n %s \n", buff);
+
+        return ;
+}
